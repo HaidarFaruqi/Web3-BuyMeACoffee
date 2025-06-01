@@ -21,9 +21,16 @@ export default function Home() {
 
   const buyCoffee = async () => {
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = getBuyMeACoffeeContract(signer);
+      // 1. Panggil getBuyMeACoffeeContract TANPA argumen
+      // 2. Gunakan 'await' karena ini adalah fungsi async
+      const contract = await getBuyMeACoffeeContract();
+
+      // PENTING: Periksa apakah 'contract' berhasil didapatkan atau null
+      // getBuyMeACoffeeContract bisa mengembalikan null jika MetaMask tidak ditemukan atau jaringan salah
+      if (!contract) {
+        alert("Koneksi ke kontrak gagal. Pastikan MetaMask terinstal dan terhubung ke Sepolia.");
+        return; // Hentikan eksekusi jika kontrak tidak valid
+      }
 
       const txn = await contract.buyCoffee(
         name || "Anonymous",
@@ -34,9 +41,18 @@ export default function Home() {
       alert("Coffee bought successfully!");
       setMessage("");
       setName("");
-    } catch (err) {
+    } catch (err: any) { // Tambahkan ': any' untuk tiping yang lebih baik
       console.error(err);
-      alert("Transaction failed.");
+      // Coba tampilkan pesan error yang lebih detail
+      let errorMessage = "Transaction failed.";
+      if (err.reason) { // Pesan dari ethers.js revert reason
+          errorMessage += ` Reason: ${err.reason}`;
+      } else if (err.data && err.data.message) { // Pesan dari error RPC (misal Metamask)
+          errorMessage += ` Message: ${err.data.message}`;
+      } else if (err.message) { // Pesan error JavaScript umum
+          errorMessage += ` Message: ${err.message}`;
+      }
+      alert(errorMessage);
     }
   };
 
