@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { getBuyMeACoffeeContract } from "../utils/contract";
+import { supabase } from "../utils/supabaseClient";   
 
 export default function Home() {
   const [account, setAccount] = useState("");
@@ -18,6 +19,18 @@ export default function Home() {
       alert("Please install MetaMask!");
     }
   };
+
+  const saveMassageToSupabase = async (name: string, message: string, address: string) => {
+    const { data, error } = await supabase
+      .from("messages")
+      .insert([{ name, message, address }]);
+
+    if (error) {
+      console.error("Error saving message to Supabase:", error);
+    } else {
+      console.log("Message saved to Supabase:", data);
+    }
+  }
 
   const buyCoffee = async () => {
     try {
@@ -38,6 +51,7 @@ export default function Home() {
         { value: ethers.parseEther(amount) }
       );
       await txn.wait();
+      await saveMassageToSupabase(name, message, account);
       alert("Coffee bought successfully!");
       setMessage("");
       setName("");

@@ -13,16 +13,6 @@ export const getBuyMeACoffeeContract = async () => {
 
     const provider = new ethers.BrowserProvider(window.ethereum);
 
-    // Dapatkan informasi jaringan saat ini dari provider
-    const network = await provider.getNetwork();
-    const sepoliaChainId = BigInt(11155111); // Chain ID untuk Sepolia
-
-    if (network.chainId !== sepoliaChainId) {
-        console.error(`Jaringan salah! Terkoneksi ke Chain ID: ${network.chainId}. Harusnya Sepolia Chain ID: ${sepoliaChainId}`);
-        alert(`Silakan ganti jaringan MetaMask Anda ke Sepolia Test Network! Anda saat ini di: ${network.name}`);
-        return null; // Atau Anda bisa throw error jika lebih suka
-    }
-
     const signer = await provider.getSigner();
     return new ethers.Contract(contractAddress, contractABI, signer);
 };
