@@ -9,7 +9,7 @@ export default function Home() {
   const [account, setAccount] = useState("");
   const [message, setMessage] = useState("");
   const [name, setName] = useState("");
-  const [amount, setAmount] = useState("0.001"); // ETH
+  const [amount, setAmount] = useState("10000"); // ETH
 
   const connectWallet = async () => {
     if (window.ethereum) {
@@ -34,41 +34,46 @@ export default function Home() {
 
   const buyCoffee = async () => {
     try {
-      // 1. Panggil getBuyMeACoffeeContract TANPA argumen
-      // 2. Gunakan 'await' karena ini adalah fungsi async
       const contract = await getBuyMeACoffeeContract();
-
-      // PENTING: Periksa apakah 'contract' berhasil didapatkan atau null
-      // getBuyMeACoffeeContract bisa mengembalikan null jika MetaMask tidak ditemukan atau jaringan salah
       if (!contract) {
         alert("Koneksi ke kontrak gagal. Pastikan MetaMask terinstal dan terhubung ke Sepolia.");
-        return; // Hentikan eksekusi jika kontrak tidak valid
+        return;
       }
 
-      const txn = await contract.buyCoffee(
+      // 1. Konversi IDR ke BigInt (tanpa desimal)
+      const idrValue = BigInt(amount); // Misalnya 10000 untuk Rp10.000
+
+      // 2. Hitung nilai ETH dari IDR menggunakan oracle
+      const ethAmount = await contract.idrtoeth(idrValue);
+
+      // 3. Kirim transaksi buycoffeeinidr
+      const txn = await contract.buycoffeeinidr(
         name || "Anonymous",
         message || "Nice work!",
-        { value: ethers.parseEther(amount) }
+        idrValue,
+        { value: ethAmount }
       );
       await txn.wait();
+
       await saveMassageToSupabase(name, message, account);
       alert("Coffee bought successfully!");
       setMessage("");
       setName("");
-    } catch (err: any) { // Tambahkan ': any' untuk tiping yang lebih baik
+    } catch (err: any) {
       console.error(err);
-      // Coba tampilkan pesan error yang lebih detail
       let errorMessage = "Transaction failed.";
-      if (err.reason) { // Pesan dari ethers.js revert reason
-          errorMessage += ` Reason: ${err.reason}`;
-      } else if (err.data && err.data.message) { // Pesan dari error RPC (misal Metamask)
-          errorMessage += ` Message: ${err.data.message}`;
-      } else if (err.message) { // Pesan error JavaScript umum
-          errorMessage += ` Message: ${err.message}`;
+      if (err.reason) {
+        errorMessage += ` Reason: ${err.reason}`;
+      } else if (err.data && err.data.message) {
+        errorMessage += ` Message: ${err.data.message}`;
+      } else if (err.message) {
+        errorMessage += ` Message: ${err.message}`;
       }
       alert(errorMessage);
     }
   };
+
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8">
@@ -97,7 +102,7 @@ export default function Home() {
         />
         <input
           type="text"
-          placeholder="Amount in ETH"
+          placeholder="Amount in IDR"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           className="p-2 border rounded"
