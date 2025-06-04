@@ -159,7 +159,7 @@ export default function Home() {
         <div className="fixed bottom-4 right-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white p-4 rounded-lg shadow-xl animate-fade-in-up transition-all duration-500 z-50">
           <h3 className="font-bold text-lg mb-1">New Coffee! ☕</h3>
           <p>From: {notification.name}</p>
-          <p>Message: "{notification.message}"</p>
+          <p>Message: '{notification.message}'</p>
           <p className="text-sm mt-1">{notification.timestamp.toLocaleTimeString()}</p>
         </div>
       )}
