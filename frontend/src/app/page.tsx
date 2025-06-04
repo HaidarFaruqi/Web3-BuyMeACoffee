@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// Hapus import 'ethers' karena tidak digunakan secara langsung di file ini.
-// import { ethers } from "ethers"; // BARIS INI DIHAPUS
 import { getBuyMeACoffeeContract } from "../utils/contract";
 import { supabase } from "../utils/supabaseClient";
+
+// --- START: Deklarasi Interface Baru ---
+// Definisikan bentuk (struktur) objek notifikasi Anda
+interface NotificationMemo {
+  from: string; // Asumsi 'from' adalah string alamat
+  timestamp: Date;
+  name: string;
+  message: string;
+  // Tambahkan properti lain di sini jika event NewMemo Anda memancarkan lebih banyak data
+}
+// --- END: Deklarasi Interface Baru ---
 
 export default function Home() {
   const [account, setAccount] = useState("");
@@ -12,7 +21,8 @@ export default function Home() {
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("10000"); // Jumlah IDR
 
-  const [notification, setNotification] = useState(null);
+  // Perbaiki deklarasi state 'notification' agar bisa berupa NotificationMemo atau null
+  const [notification, setNotification] = useState<NotificationMemo | null>(null);
   const [notificationVisible, setNotificationVisible] = useState(false);
 
   const connectWallet = async () => {
@@ -44,7 +54,6 @@ export default function Home() {
         return;
       }
 
-      // BigInt adalah objek global JavaScript, tidak perlu import ethers di sini
       const idrValue = BigInt(amount); 
       const ethAmount = await contract.idrtoeth(idrValue);
 
@@ -60,27 +69,21 @@ export default function Home() {
       alert("Coffee bought successfully!");
       setMessage("");
       setName("");
-    } catch (err: unknown) { // Perubahan dari 'any' ke 'unknown'
+    } catch (err: unknown) {
       console.error(err);
       let errorMessage = "Transaction failed.";
       
-      // Penanganan error yang lebih aman untuk tipe 'unknown'
       if (typeof err === 'object' && err !== null) {
           if ('reason' in err && typeof err.reason === 'string') {
               errorMessage += ` Reason: ${err.reason}`;
           } else if ('data' in err && typeof err.data === 'object' && err.data !== null && 'message' in err.data && typeof err.data.message === 'string') {
               errorMessage += ` Message: ${err.data.message}`;
-          } else if ('message' in err && typeof err.message === 'string') {
-              errorMessage += ` Message: ${err.message}`;
           }
       }
       alert(errorMessage);
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars
-  // Baris di atas adalah komentar untuk mematikan aturan ESLint tertentu
-  // jika Anda masih mendapatkan 'useEffect' is defined but never used.
   useEffect(() => { 
     const listenForMemos = async () => {
       const contract = await getBuyMeACoffeeContract();
@@ -89,10 +92,12 @@ export default function Home() {
         return;
       }
 
-      contract.on("NewMemo", (from, timestamp, name, message) => {
-        const newNotification = {
+      // Tambahkan tipe untuk parameter callback event agar lebih type-safe
+      contract.on("NewMemo", (from: string, timestamp: BigInt, name: string, message: string) => {
+        // Eksplisitkan tipe objek 'newNotification'
+        const newNotification: NotificationMemo = { 
           from: from,
-          timestamp: new Date(Number(timestamp) * 1000),
+          timestamp: new Date(Number(timestamp) * 1000), 
           name: name,
           message: message,
         };
@@ -103,7 +108,7 @@ export default function Home() {
 
         setTimeout(() => {
           setNotificationVisible(false);
-          setNotification(null);
+          setNotification(null); 
         }, 8000);
       });
 
@@ -159,7 +164,7 @@ export default function Home() {
         <div className="fixed bottom-4 right-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white p-4 rounded-lg shadow-xl animate-fade-in-up transition-all duration-500 z-50">
           <h3 className="font-bold text-lg mb-1">New Coffee! ☕</h3>
           <p>From: {notification.name}</p>
-          <p>Message: &apos;{notification.message}&apos;</p> {/* <-- PERBAIKAN FINAL DI SINI */}
+          <p>Message: &apos;{notification.message}&apos;</p>
           <p className="text-sm mt-1">{notification.timestamp.toLocaleTimeString()}</p>
         </div>
       )}
