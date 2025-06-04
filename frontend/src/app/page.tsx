@@ -93,7 +93,7 @@ export default function Home() {
       }
 
       // Tambahkan tipe untuk parameter callback event agar lebih type-safe
-      contract.on("NewMemo", (from: string, timestamp: BigInt, name: string, message: string) => {
+      contract.on("NewMemo", (from: string, timestamp: bigInt, name: string, message: string) => {
         // Eksplisitkan tipe objek 'newNotification'
         const newNotification: NotificationMemo = { 
           from: from,
