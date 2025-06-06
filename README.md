@@ -100,7 +100,7 @@ Ikuti langkah-langkah ini untuk menjalankan proyek di lingkungan pengembangan lo
 
 7.  **Deploy Smart Contract ke Sepolia:**
     ```bash
-    npx hardhat run scripts/deploy.js --network sepolia
+    npx hardhat run ignition/modules/deploy.js --network sepolia
     ```
     * Perhatikan outputnya, Anda akan melihat alamat kontrak yang dideploy. **SALIN ALAMAT INI!**
 
