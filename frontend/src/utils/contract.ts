@@ -2,7 +2,7 @@
 import { ethers } from "ethers";
 import BuyMeACoffee from "./BuyMeACoffee.json";
 
-const contractAddress = "0x5d7857f5a436b5c2DB6982CB39179066c548D33e"; // ALAMAT KONTRAK SEPOLIA ANDA
+const contractAddress = "0x3a9A1fF88265af8287fa879955565195d2eA8cA1"; //Alamat jaringan sepolia
 const contractABI = BuyMeACoffee.abi;
 
 export const getBuyMeACoffeeContract = async () => {
