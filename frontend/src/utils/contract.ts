@@ -2,17 +2,33 @@
 import { ethers } from "ethers";
 import BuyMeACoffee from "./BuyMeACoffee.json";
 
-const contractAddress = "0x3a9A1fF88265af8287fa879955565195d2eA8cA1"; //Alamat jaringan sepolia
+// Get contract address from environment variable
+const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "";
 const contractABI = BuyMeACoffee.abi;
 
+/**
+ * Get instance of BuyMeACoffee contract connected to user's wallet
+ * @returns Contract instance or null if MetaMask is not available
+ */
 export const getBuyMeACoffeeContract = async () => {
-    if (typeof window === "undefined" || !window.ethereum) {
-        console.error("MetaMask atau provider Web3 tidak ditemukan.");
+    // Validate contract address is set
+    if (!contractAddress) {
+        console.error("Contract address not set. Please add NEXT_PUBLIC_CONTRACT_ADDRESS to your .env.local file.");
         return null;
     }
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
+    // Check if running in browser and MetaMask is available
+    if (typeof window === "undefined" || !window.ethereum) {
+        console.error("MetaMask or Web3 provider not found. Please install MetaMask.");
+        return null;
+    }
 
-    const signer = await provider.getSigner();
-    return new ethers.Contract(contractAddress, contractABI, signer);
+    try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        return new ethers.Contract(contractAddress, contractABI, signer);
+    } catch (error) {
+        console.error("Error connecting to contract:", error);
+        return null;
+    }
 };
